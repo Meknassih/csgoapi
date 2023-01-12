@@ -1,3 +1,3 @@
 export class PostKickDto {
-  name: string;
+  username: string;
 }
