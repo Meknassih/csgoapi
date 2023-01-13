@@ -7,11 +7,27 @@ export class RconService {
   private server: Rcon;
 
   constructor(private readonly configService: ConfigService) {
+    this.initialize();
+  }
+
+  async initialize(): Promise<boolean> {
     this.server = new Rcon({
-      host: configService.get('CSGO_SERVER_HOST'),
-      port: configService.get('CSGO_SERVER_PORT')
+      host: this.configService.get('CSGO_SERVER_HOST'),
+      port: this.configService.get('CSGO_SERVER_PORT')
     });
-    this.server.authenticate(configService.get('CSGO_RCON_PASSWORD'));
+    return await this.server.authenticate(this.configService.get('CSGO_RCON_PASSWORD'));
+  }
+
+  async execute(command: string, isRetry: boolean = false): Promise<string> {
+    try {
+      return this.server.execute(command) as Promise<string>;
+    } catch (error) {
+      await this.initialize();
+      if (!isRetry) {
+        return await this.execute(command, true);
+      }
+      return error;
+    }
   }
 
   async status(): Promise<string> {
@@ -19,7 +35,7 @@ export class RconService {
   }
 
   async users(): Promise<string> {
-    return this.server.execute('users') as Promise<string>;
+    return this.execute('users');
   }
 
   async map(name: string): Promise<string> {

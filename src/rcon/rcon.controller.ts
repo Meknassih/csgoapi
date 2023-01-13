@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post } from '@nestjs/common';
 import { PostBanDto } from './dto/ban.dto';
 import { PostBotQuotaDto } from './dto/botQuota.dto';
 import { PostCheatsDto } from './dto/cheats.dto';
@@ -10,12 +10,19 @@ import { PostMapDto } from './dto/map.dto';
 import { PostPasswordDto } from './dto/password.dto';
 import { PostRestartDto } from './dto/restart.dto';
 import { PostSayDto } from './dto/say.dto';
+import { UserResponseDto } from './dto/user.dto';
 import { PostVipDto } from './dto/vip.dto';
+import { FormatterService } from './formatter/formatter.service';
 import { RconService } from './rcon.service';
 
 @Controller('rcon')
 export class RconController {
-  constructor(private readonly rconService: RconService) { }
+  private readonly logger = new Logger(RconController.name);
+
+  constructor(
+    private readonly rconService: RconService,
+    private readonly formatterService: FormatterService
+  ) { }
 
   @Get("status")
   getStatus(): Promise<string> {
@@ -23,8 +30,15 @@ export class RconController {
   }
 
   @Get("users")
-  getUsers(): Promise<string> {
-    return this.rconService.users();
+  async getUsers(): Promise<UserResponseDto[] | Error> {
+    try {
+      const data = await this.rconService.users();
+      return this.formatterService.formatUsers(data);
+    } catch (error) {
+      this.logger.error(error);
+      this.rconService.initialize();
+      return new Error(error);
+    }
   }
 
   @Post("map")
