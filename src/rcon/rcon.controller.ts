@@ -1,21 +1,23 @@
-import { Body, Controller, Get, Logger, Post } from '@nestjs/common';
-import { PostBanDto } from './dto/ban.dto';
-import { PostBotQuotaDto } from './dto/botQuota.dto';
-import { GetCheatsResponseDto, PostCheatsDto } from './dto/cheats.dto';
-import { PostExecuteDto } from './dto/execute.dto';
-import { PostExplodeDto } from './dto/explode.dto';
-import { PostHostnameDto } from './dto/hostname.dto';
-import { PostKickDto } from './dto/kick.dto';
-import { PostMapDto } from './dto/map.dto';
-import { PostPasswordDto } from './dto/password.dto';
-import { PostRestartDto } from './dto/restart.dto';
-import { PostSayDto } from './dto/say.dto';
-import { UserResponseDto } from './dto/user.dto';
-import { PostVipDto } from './dto/vip.dto';
+import { Body, Controller, Get, HttpException, HttpStatus, Logger, Post, UseFilters } from '@nestjs/common';
+import { PostBanDto } from './dtos/ban.dto';
+import { PostBotQuotaDto } from './dtos/botQuota.dto';
+import { GetCheatsResponseDto, PostCheatsDto } from './dtos/cheats.dto';
+import { PostExecuteDto } from './dtos/execute.dto';
+import { PostExplodeDto } from './dtos/explode.dto';
+import { GetHostnameResponseDto, PostHostnameDto } from './dtos/hostname.dto';
+import { PostKickDto } from './dtos/kick.dto';
+import { PostMapDto } from './dtos/map.dto';
+import { PostPasswordDto } from './dtos/password.dto';
+import { PostRestartDto } from './dtos/restart.dto';
+import { PostSayDto } from './dtos/say.dto';
+import { UserResponseDto } from './dtos/user.dto';
+import { PostVipDto } from './dtos/vip.dto';
+import { RconExceptionFilter } from './filters/rcon-exception.filter';
 import { FormatterService } from './formatter/formatter.service';
 import { RconService } from './rcon.service';
 
 @Controller('rcon')
+  @UseFilters(RconExceptionFilter)
 export class RconController {
   private readonly logger = new Logger(RconController.name);
 
@@ -30,14 +32,14 @@ export class RconController {
   }
 
   @Get("users")
-  async getUsers(): Promise<UserResponseDto[] | Error> {
+  async getUsers(): Promise<UserResponseDto[]> {
     try {
       const data = await this.rconService.users();
       return this.formatterService.formatUsers(data);
     } catch (error) {
       this.logger.error(error);
       this.rconService.initialize();
-      return new Error(error);
+      throw new HttpException(error, HttpStatus.SERVICE_UNAVAILABLE);
     }
   }
 
@@ -71,9 +73,20 @@ export class RconController {
     return this.rconService.setPassword(passwordDto.password);
   }
 
+  @Get("hostname")
+  async getHostname(): Promise<GetHostnameResponseDto> {
+    try {
+      const response = await this.rconService.hostname();
+      return this.formatterService.formatHostname(response);
+    } catch (error) {
+      this.logger.error(error);
+      throw new HttpException(error, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+  }
+
   @Post("hostname")
   postHostname(@Body() hostnameDto: PostHostnameDto): Promise<string> {
-    return this.rconService.setHostname(hostnameDto.hostname);
+    return this.rconService.hostname(hostnameDto.hostname);
   }
 
   @Post("execute")
@@ -99,7 +112,7 @@ export class RconController {
     } catch (error) {
       this.logger.error(error);
       this.rconService.initialize();
-      return new Error(error);
+      throw new HttpException(error, HttpStatus.SERVICE_UNAVAILABLE);
     }
   }
 

@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Rcon from 'rcon-srcds';
 
 @Injectable()
 export class RconService {
   private server: Rcon;
+  private readonly logger = new Logger(RconService.name);
 
   constructor(private readonly configService: ConfigService) {
     this.initialize();
@@ -15,7 +16,9 @@ export class RconService {
       host: this.configService.get('CSGO_SERVER_HOST'),
       port: this.configService.get('CSGO_SERVER_PORT')
     });
-    return await this.server.authenticate(this.configService.get('CSGO_RCON_PASSWORD'));
+    const authResult = await this.server.authenticate(this.configService.get('CSGO_RCON_PASSWORD'));
+    this.logger.debug("RCON Authenticated: " + authResult)
+    return authResult;
   }
 
   async execute(command: string, isRetry: boolean = false): Promise<string> {
@@ -62,8 +65,8 @@ export class RconService {
     return this.server.execute(`sv_password ${password}`) as Promise<string>;
   }
 
-  async setHostname(hostname: string): Promise<string> {
-    return this.server.execute(`hostname ${hostname}`) as Promise<string>;
+  async hostname(hostname?: string): Promise<string> {
+    return this.server.execute(`hostname ${hostname || ""}`) as Promise<string>;
   }
 
   async exec(filename: string): Promise<string> {

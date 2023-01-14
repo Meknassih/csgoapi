@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { UserResponseDto } from '../dto/user.dto';
+import { GetCheatsResponseDto } from '../dtos/cheats.dto';
+import { GetHostnameResponseDto } from '../dtos/hostname.dto';
+import { UserResponseDto } from '../dtos/user.dto';
 
 @Injectable()
 export class FormatterService {
@@ -20,10 +22,17 @@ export class FormatterService {
     return usersResponse;
   }
 
-  formatCheats(cheats: string): { cheats: number } {
+  formatCheats(cheats: string): GetCheatsResponseDto {
     const cheatsResponse = {
       cheats: parseInt(cheats.match(/"sv_cheats" = "(\d)"/)[1], 10)
     };
     return cheatsResponse;
+  }
+
+  formatHostname(hostname: string): GetHostnameResponseDto {
+    const hostnameResponse = {
+      hostname: hostname.match(/"hostname" = "([^"]*)"/)[1]
+    };
+    return hostnameResponse;
   }
 }
