@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { GetBotQuotaResponseDto } from '../dtos/botQuota.dto';
 import { GetCheatsResponseDto } from '../dtos/cheats.dto';
 import { GetHostnameResponseDto } from '../dtos/hostname.dto';
 import { UserResponseDto } from '../dtos/user.dto';
@@ -34,5 +35,12 @@ export class FormatterService {
       hostname: hostname.match(/"hostname" = "([^"]*)"/)[1]
     };
     return hostnameResponse;
+  }
+
+  formatBotQuota(botQuota: string): GetBotQuotaResponseDto {
+    const botQuotaResponse = {
+      quota: parseInt(botQuota.match(/"bot_quota" = "(\d+)"/)[1], 10)
+    };
+    return botQuotaResponse;
   }
 }

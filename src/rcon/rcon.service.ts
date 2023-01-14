@@ -73,8 +73,8 @@ export class RconService {
     return this.server.execute(`exec ${filename}`) as Promise<string>;
   }
 
-  async botQuota(quota: number): Promise<string> {
-    return this.server.execute(`bot_quota ${quota}`) as Promise<string>;
+  async botQuota(quota?: number): Promise<string> {
+    return this.server.execute(`bot_quota ${quota || ""}`) as Promise<string>;
   }
 
   async makeVip(username: string): Promise<string> {

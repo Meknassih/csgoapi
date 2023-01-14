@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpException, HttpStatus, Logger, Post, UseFilters } from '@nestjs/common';
 import { PostBanDto } from './dtos/ban.dto';
-import { PostBotQuotaDto } from './dtos/botQuota.dto';
+import { GetBotQuotaResponseDto, PostBotQuotaDto } from './dtos/botQuota.dto';
 import { GetCheatsResponseDto, PostCheatsDto } from './dtos/cheats.dto';
 import { PostExecuteDto } from './dtos/execute.dto';
 import { PostExplodeDto } from './dtos/explode.dto';
@@ -94,9 +94,21 @@ export class RconController {
     return this.rconService.exec(executeDto.filename);
   }
 
+  @Get("botQuota")
+  async getBotQuota(): Promise<GetBotQuotaResponseDto> {
+    try {
+      const response = await this.rconService.botQuota();
+      return this.formatterService.formatBotQuota(response);
+    } catch (error) {
+      this.logger.error(error);
+      throw new HttpException(error, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+  }
+
   @Post("botQuota")
-  postBotQuota(@Body() botQuotaDto: PostBotQuotaDto): Promise<string> {
-    return this.rconService.botQuota(botQuotaDto.quota);
+  async postBotQuota(@Body() botQuotaDto: PostBotQuotaDto): Promise<void> {
+    await this.rconService.botQuota(botQuotaDto.quota);
+    return;
   }
 
   @Post("vip")
