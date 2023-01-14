@@ -78,8 +78,13 @@ export class RconService {
     return this.server.execute(`cs_make_vip ${username}`) as Promise<string>;
   }
 
-  async cheats(enable: boolean): Promise<string> {
-    return this.server.execute(`sv_cheats ${enable ? 1 : 0}`) as Promise<string>;
+  async cheats(enable?: boolean): Promise<string> {
+    let argument = "";
+    if (enable === true)
+      argument = " 1";
+    else if (enable === false)
+      argument = " 0";
+    return this.server.execute(`sv_cheats${argument}`) as Promise<string>;
   }
 
   async stats(): Promise<string> {

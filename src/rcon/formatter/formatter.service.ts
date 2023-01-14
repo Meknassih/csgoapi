@@ -19,4 +19,11 @@ export class FormatterService {
     });
     return usersResponse;
   }
+
+  formatCheats(cheats: string): { cheats: number } {
+    const cheatsResponse = {
+      cheats: parseInt(cheats.match(/"sv_cheats" = "(\d)"/)[1], 10)
+    };
+    return cheatsResponse;
+  }
 }

@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Logger, Post } from '@nestjs/common';
 import { PostBanDto } from './dto/ban.dto';
 import { PostBotQuotaDto } from './dto/botQuota.dto';
-import { PostCheatsDto } from './dto/cheats.dto';
+import { GetCheatsResponseDto, PostCheatsDto } from './dto/cheats.dto';
 import { PostExecuteDto } from './dto/execute.dto';
 import { PostExplodeDto } from './dto/explode.dto';
 import { PostHostnameDto } from './dto/hostname.dto';
@@ -89,6 +89,18 @@ export class RconController {
   @Post("vip")
   postVip(@Body() vipDto: PostVipDto): Promise<string> {
     return this.rconService.makeVip(vipDto.username);
+  }
+
+  @Get("cheats")
+  async getCheats(): Promise<GetCheatsResponseDto | Error> {
+    try {
+      const response = await this.rconService.cheats();
+      return this.formatterService.formatCheats(response);
+    } catch (error) {
+      this.logger.error(error);
+      this.rconService.initialize();
+      return new Error(error);
+    }
   }
 
   @Post("cheats")
