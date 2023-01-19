@@ -10,6 +10,7 @@ import { PostMapDto } from './dtos/map.dto';
 import { PostPasswordDto } from './dtos/password.dto';
 import { PostRestartDto } from './dtos/restart.dto';
 import { PostSayDto } from './dtos/say.dto';
+import { GetStatusResponseDto } from './dtos/status.dto';
 import { UserResponseDto } from './dtos/user.dto';
 import { PostVipDto } from './dtos/vip.dto';
 import { RconExceptionFilter } from './filters/rcon-exception.filter';
@@ -27,8 +28,15 @@ export class RconController {
   ) { }
 
   @Get("status")
-  getStatus(): Promise<string> {
-    return this.rconService.status();
+  async getStatus(): Promise<GetStatusResponseDto> {
+    try {
+      const data = await this.rconService.status();
+      return this.formatterService.formatStatus(data);
+    } catch (error) {
+      this.logger.error(error);
+      this.rconService.initialize();
+      throw new HttpException(error, HttpStatus.SERVICE_UNAVAILABLE);
+    }
   }
 
   @Get("users")
